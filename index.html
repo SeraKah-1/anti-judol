@@ -132,6 +132,7 @@
                         <h2 class="font-bold text-2xl"><span id="blackjack-player-name"></span> (<span id="player-score">0</span>)</h2>
                     </div>
                 </div>
+                <div id="skill-info" class="mt-2 text-center text-yellow-300 font-semibold h-6"></div>
                 <div id="game-controls" class="mt-4 max-w-4xl mx-auto flex justify-center items-center gap-4">
                     <div id="betting-controls" class="flex items-center gap-2">
                         <input type="number" id="bet-amount" class="w-32 bg-gray-900 text-center p-3 rounded" value="10" step="10">
@@ -190,7 +191,7 @@
                 'topic-input', 'start-quiz-btn', 'exchange-pi-balance', 'exchange-chip-balance', 'pi-to-exchange', 'chips-to-exchange', 'exchange-pi-btn', 'exchange-chips-btn',
                 'skill-tree-container', 'dealer-score', 'dealer-cards', 'player-cards', 'blackjack-player-name', 'player-score',
                 'game-controls', 'betting-controls', 'bet-amount', 'deal-btn', 'action-controls', 'hit-btn', 'stand-btn', 'double-btn',
-                'skill-controls', 'game-result', 'dealer-comment-box', 'loading-text'
+                'skill-controls', 'skill-info', 'game-result', 'dealer-comment-box', 'loading-text'
             ].forEach(id => {
                 const camelCaseId = id.replace(/-(\w)/g, (m, p1) => p1.toUpperCase());
                 dom[camelCaseId] = document.getElementById(id);
@@ -524,6 +525,7 @@
             dom.bettingControls.classList.remove('hidden');
             dom.actionControls.classList.add('hidden');
             dom.skillControls.classList.add('hidden');
+            dom.skillInfo.textContent = '';
         }
 
         function createDeck() {
@@ -657,7 +659,21 @@
         }
 
         function dealerTurn() {
-            if (calculateScore(blackjackState.dealerHand) < 17) {
+            let dealerScore = calculateScore(blackjackState.dealerHand);
+            
+            // Poker Face skill logic
+            if (blackjackState.skillUsed['poker_face'] && (dealerScore === 15 || dealerScore === 16)) {
+                const successChance = (playerProfile.skills['poker_face'] || 0) * 0.25; // 25% chance per level
+                if (Math.random() < successChance) {
+                    dom.skillInfo.textContent = "Wajah pokermu berhasil! Bandar terlihat ragu dan memutuskan untuk STAND.";
+                    determineWinner();
+                    return;
+                } else {
+                    dom.skillInfo.textContent = "Bandar tidak terpengaruh oleh gertakanmu.";
+                }
+            }
+
+            if (dealerScore < 17) {
                 playSound('hit');
                 const newCard = blackjackState.deck.pop();
                 blackjackState.dealerHand.push(newCard);
@@ -713,7 +729,7 @@
             updateAllUI();
             savePlayerProfile();
             
-            getDealerComment(outcomeEvent); // Call without await for background execution
+            getDealerComment(outcomeEvent);
             
             setTimeout(() => dom.bettingControls.classList.remove('hidden'), 3000);
         }
@@ -737,10 +753,36 @@
             playSound('skill');
             blackjackState.skillUsed[skillId] = true;
             renderSkillButtons();
+            dom.skillInfo.textContent = ''; // Clear previous skill info
 
             if(skillId === 'peek') {
                 const hiddenCard = blackjackState.dealerHand[1];
-                alert(`Bandar lengah! Kartu tertutupnya adalah ${hiddenCard.value} ${hiddenCard.suit}.`);
+                dom.skillInfo.textContent = `Mata Elang: Kartu tertutup Bandar adalah ${hiddenCard.value} ${hiddenCard.suit}.`;
+            }
+            if(skillId === 'card_count') {
+                const level = playerProfile.skills[skillId];
+                const counts = { high: 0, low: 0, neutral: 0 };
+                blackjackState.deck.forEach(card => {
+                    const val = getCardValue(card);
+                    if (val >= 10) counts.high++;
+                    else if (val <= 6) counts.low++;
+                    else counts.neutral++;
+                });
+
+                if (level === 1) {
+                    const ratio = counts.high / (counts.low || 1);
+                    if (ratio > 1.2) dom.skillInfo.textContent = "Hitung Kartu: Sisa dek lebih banyak kartu TINGGI.";
+                    else if (ratio < 0.8) dom.skillInfo.textContent = "Hitung Kartu: Sisa dek lebih banyak kartu RENDAH.";
+                    else dom.skillInfo.textContent = "Hitung Kartu: Sisa dek seimbang.";
+                } else if (level === 2) {
+                    dom.skillInfo.textContent = `Hitung Kartu: Tinggi: ${counts.high}, Rendah: ${counts.low}`;
+                } else if (level === 3) {
+                    const nextCard = blackjackState.deck[blackjackState.deck.length - 1];
+                    dom.skillInfo.textContent = `Hitung Kartu: Kartu selanjutnya adalah ${nextCard.value} ${nextCard.suit}.`;
+                }
+            }
+            if(skillId === 'poker_face') {
+                dom.skillInfo.textContent = "Kamu memasang wajah poker, mencoba mengintimidasi Bandar...";
             }
         }
 
