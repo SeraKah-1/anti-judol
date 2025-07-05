@@ -3,184 +3,751 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasino Harapan Kosong</title>
+    <title>Kasino Harapan Kosong 3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #1a1a2e;
-        }
-        .font-display {
-            font-family: 'Playfair Display', serif;
-        }
-        .neon-text {
-            color: #fff;
-            text-shadow:
-                0 0 7px #fff,
-                0 0 10px #fff,
-                0 0 21px #fff,
-                0 0 42px #f09,
-                0 0 82px #f09,
-                0 0 92px #f09,
-                0 0 102px #f09,
-                0 0 151px #f09;
-        }
-        .btn-primary {
-            background-color: #e94560;
-            transition: all 0.2s ease-in-out;
-        }
-        .btn-primary:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px #e94560;
-        }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-left-color: #e94560;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
+        body { font-family: 'Poppins', sans-serif; background-color: #1a1a2e; }
+        .font-display { font-family: 'Playfair Display', serif; }
+        .neon-text { color: #fff; text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff, 0 0 42px #f09, 0 0 82px #f09, 0 0 92px #f09; }
+        .btn { transition: all 0.2s ease-in-out; border-radius: 0.5rem; padding: 0.75rem 1.5rem; font-weight: bold; }
+        .btn-primary { background-color: #e94560; color: white; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 20px #e9456080; }
+        .btn-primary:disabled { background-color: #a13043; cursor: not-allowed; opacity: 0.6; }
+        .btn-secondary { background-color: #0f3460; border: 1px solid #e94560; color: white; }
+        .btn-secondary:hover:not(:disabled) { background-color: #16213e; }
+        .btn-skill { background-color: #0f3460; border: 1px solid #e94560; color: white; }
+        .btn-skill:disabled { background-color: #4a5568; border-color: #718096; cursor: not-allowed; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.2); border-left-color: #e94560; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .cockroach-arena {
-            background-color: #2d2d54;
-            border: 5px solid #16213e;
-        }
-        .dealer-comment {
-            background-color: #0f3460;
-            border-left: 5px solid #e94560;
-        }
+        .blackjack-table { background-image: radial-gradient(circle, #007A00, #004d00); border: 10px solid #5C3A21; border-radius: 150px; aspect-ratio: 2/1; box-shadow: inset 0 0 25px rgba(0,0,0,0.5); }
+        .playing-card { width: 80px; height: 120px; background-color: white; border: 1px solid black; border-radius: 5px; color: black; position: relative; display: inline-block; margin: 0 -15px; box-shadow: 3px 3px 7px rgba(0,0,0,0.4); transition: transform 0.5s ease; animation: deal-card 0.5s ease-out; }
+        @keyframes deal-card { from { opacity: 0; transform: translateY(-100px) rotateX(-90deg); } to { opacity: 1; transform: translateY(0) rotateX(0deg); } }
+        .playing-card.hidden-card { background-image: linear-gradient(45deg, #e94560, #f09); }
+        .playing-card.red { color: red; }
+        .card-value { font-size: 1.5rem; font-weight: bold; position: absolute; top: 5px; left: 8px; }
+        .card-suit { font-size: 1.2rem; position: absolute; bottom: 5px; right: 8px; }
+        .skill-node { border: 2px solid #e94560; background-color: #0f3460; cursor: pointer; transition: all 0.2s; }
+        .skill-node:hover { transform: scale(1.05); }
+        .skill-node.unlocked { background-color: #e94560; color: white; }
+        .skill-node.maxed { background-color: #f09; border-color: #f09; cursor: not-allowed; }
     </style>
 </head>
 <body class="text-white">
 
-    <div id="app-container" class="w-full max-w-6xl mx-auto p-4 md:p-6">
+    <div id="app-container" class="w-full max-w-7xl mx-auto p-4">
 
-        <!-- API Key Screen -->
-        <div id="api-key-screen" class="max-w-xl mx-auto text-center bg-[#16213e] p-8 rounded-xl shadow-2xl">
-            <h1 class="text-3xl font-display text-yellow-300 mb-4">Akses Eksklusif</h1>
-            <p class="text-gray-300 mb-6">Kasino ini sangat spesial, sampai-sampai butuh kunci pribadi dari Google AI untuk memastikan hanya orang "pintar" yang bisa masuk. Masukkan API Key-mu.</p>
-            <input type="password" id="api-key-input" class="w-full bg-gray-900 text-white p-3 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 focus:outline-none" placeholder="Masukkan API Key di sini...">
-            <button id="save-api-key-btn" class="mt-4 w-full btn-primary text-white font-bold py-3 px-4 rounded-lg text-lg">Masuk ke Sarang Kehancuran</button>
+        <!-- Universal Header -->
+        <div id="header" class="hidden justify-between items-center bg-[#16213e] p-4 rounded-xl mb-4">
+            <div>
+                <span class="font-bold">Pemain:</span> <span id="header-player-name"></span> |
+                <span class="font-bold text-yellow-300">Chips:</span> <span id="header-chips"></span> |
+                <span class="font-bold text-blue-300">Poin Intelektual (PI):</span> <span id="header-pi"></span>
+            </div>
+            <div id="header-nav" class="flex gap-2"></div>
         </div>
 
-        <!-- Quiz Selection Screen -->
-        <div id="quiz-selection-screen" class="hidden max-w-xl mx-auto text-center">
-            <h1 class="text-3xl font-display text-yellow-300 mb-2">Isi Ulang Modal Intelektual</h1>
-            <p class="text-gray-300 mb-6">Kamu tidak bisa membeli chip di sini. Kamu harus mendapatkannya dengan membuktikan kamu tidak sebodoh itu. Pilih topik kuis:</p>
-            <div class="space-y-4 bg-[#16213e] p-8 rounded-xl shadow-2xl">
-                <div>
-                    <label for="topic-input" class="block mb-2 font-semibold text-lg text-left">Ketik Topik Apapun:</label>
-                    <input type="text" id="topic-input" class="w-full bg-gray-900 text-white p-3 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 focus:outline-none" placeholder="Contoh: Sejarah Romawi, Relativitas Einstein, Cara Memasak Indomie...">
+        <!-- Screens -->
+        <div id="screen-container">
+            <!-- Player Name Screen -->
+            <div id="player-name-screen" class="hidden max-w-xl mx-auto text-center bg-[#16213e] p-8 rounded-xl shadow-2xl">
+                <h1 class="text-3xl font-display text-yellow-300 mb-4">Siapakah Dirimu, Calon Donatur?</h1>
+                <input type="text" id="player-name-input" class="w-full bg-gray-900 text-white p-3 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 focus:outline-none" placeholder="Masukkan Namamu...">
+                <button id="save-player-name-btn" class="mt-4 w-full btn btn-primary text-lg">Konfirmasi Identitas</button>
+            </div>
+
+            <!-- API Key Screen -->
+            <div id="api-key-screen" class="hidden max-w-xl mx-auto text-center bg-[#16213e] p-8 rounded-xl shadow-2xl">
+                <h1 class="text-3xl font-display text-yellow-300 mb-4">Akses Intelektual & Sarkasme</h1>
+                <p class="text-gray-300 mb-6">Untuk kuis tak terbatas dan hinaan premium dari Bandar, kami butuh koneksi ke otaknya (Google AI API Key). Masukkan jika punya.</p>
+                <input type="password" id="api-key-input" class="w-full bg-gray-900 text-white p-3 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 focus:outline-none" placeholder="Masukkan API Key di sini...">
+                <button id="save-api-key-btn" class="mt-4 w-full btn btn-primary text-lg">Simpan & Lanjutkan</button>
+                <button id="skip-api-key-btn" class="mt-2 w-full btn bg-gray-600 hover:bg-gray-700 text-white">Main Tanpa AI</button>
+            </div>
+            
+            <!-- Lobby Screen -->
+            <div id="lobby-screen" class="hidden text-center">
+                <h1 class="text-5xl font-display neon-text mb-4">Lobi Harapan Kosong</h1>
+                <p class="text-gray-400 mb-8">Pilih jalan menuju kemenangan sesaat atau kekalahan abadi.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                    <button data-target="quiz-selection-screen" class="nav-btn w-full btn btn-primary p-8 rounded-lg text-2xl">Aula Kuis<br><span class="text-sm font-normal">(Cari Poin Intelektual)</span></button>
+                    <button data-target="exchange-screen" class="nav-btn w-full btn btn-primary p-8 rounded-lg text-2xl">Loket Penukaran<br><span class="text-sm font-normal">(Tukar PI & Chip)</span></button>
+                    <button data-target="skill-tree-screen" class="nav-btn w-full btn btn-primary p-8 rounded-lg text-2xl">Pohon Skill<br><span class="text-sm font-normal">(Asah Trik Curangmu)</span></button>
                 </div>
-                <button id="start-quiz-btn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg text-lg">Mulai Kuis</button>
+                <button data-target="blackjack-screen" class="nav-btn mt-8 w-full max-w-md mx-auto btn btn-secondary p-6 rounded-lg text-3xl">MEJA BLACKJACK</button>
             </div>
-        </div>
 
-        <!-- Quiz Screen -->
-        <div id="quiz-screen" class="hidden max-w-2xl mx-auto">
-            <h2 id="quiz-title" class="text-2xl font-bold text-center mb-6"></h2>
-            <div id="question-container" class="bg-[#16213e] p-8 rounded-xl shadow-2xl"></div>
-            <div id="quiz-feedback" class="mt-4 text-center font-bold"></div>
-        </div>
-        
-        <!-- Loading Screen -->
-        <div id="loading-screen" class="hidden text-center p-10">
-            <div class="flex justify-center items-center mb-4">
-                <div class="spinner"></div>
+            <!-- Quiz Screens (Selection & Active) -->
+            <div id="quiz-selection-screen" class="hidden max-w-xl mx-auto text-center">
+                 <h1 class="text-3xl font-display text-yellow-300 mb-2">Isi Ulang Modal Intelektual</h1>
+                 <p class="text-gray-300 mb-6">Buktikan kamu punya otak sebelum kehilangan akal sehatmu. Ketik topik kuis:</p>
+                 <div class="space-y-4 bg-[#16213e] p-8 rounded-xl shadow-2xl">
+                     <input type="text" id="topic-input" class="w-full bg-gray-900 text-white p-3 rounded-md" placeholder="Contoh: Sejarah Romawi, Relativitas Einstein...">
+                     <button id="start-quiz-btn" class="w-full btn btn-primary text-lg">Buatkan Kuis!</button>
+                 </div>
             </div>
-            <p id="loading-text" class="text-xl font-semibold text-gray-300"></p>
-        </div>
+            <div id="quiz-screen" class="hidden max-w-2xl mx-auto bg-[#16213e] p-8 rounded-xl shadow-2xl"></div>
 
-        <!-- Casino Screen -->
-        <div id="casino-screen" class="hidden">
-            <div class="text-center mb-6">
-                <h1 class="text-5xl font-display neon-text">Kasino Harapan Kosong</h1>
-                <p class="text-gray-400">Tempat di mana chip hasil jerih payahmu akan kami ambil dengan senang hati.</p>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Game Area -->
-                <div class="lg:col-span-2 bg-[#16213e] p-6 rounded-xl shadow-2xl">
-                    <h2 class="text-2xl font-bold text-center mb-4">Tebak Arah Kecoak&trade;</h2>
-                    <div class="cockroach-arena w-full h-64 md:h-80 relative flex items-center justify-center rounded-lg mb-4">
-                        <img id="cockroach-img" src="https://placehold.co/100x100/3d3d6b/ffffff?text=%F0%9F%A6%B3" alt="Kecoak Digital" class="w-24 h-24 transition-transform duration-500">
+            <!-- Exchange Screen -->
+            <div id="exchange-screen" class="hidden max-w-xl mx-auto text-center">
+                <h1 class="text-3xl font-display text-yellow-300 mb-2">Loket Penukaran Dua Arah</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Buy Chips -->
+                    <div class="bg-[#16213e] p-8 rounded-xl shadow-2xl">
+                        <h2 class="text-xl font-bold mb-2">Beli Chip</h2>
+                        <p class="text-sm text-gray-400 mb-4">Kurs: 1 PI = 10 Chips</p>
+                        <p class="text-lg mb-4">PI Kamu: <span class="font-bold text-blue-300" id="exchange-pi-balance">0</span></p>
+                        <input type="number" id="pi-to-exchange" class="w-full bg-gray-900 text-white p-3 rounded-md mb-4" placeholder="Jumlah PI...">
+                        <button id="exchange-pi-btn" class="w-full btn btn-primary text-lg">Beli Chip</button>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 items-center">
-                        <div></div>
-                        <button class="direction-btn btn-primary p-4 font-bold" data-direction="Utara">UTARA</button>
-                        <div></div>
-                        <button class="direction-btn btn-primary p-4 font-bold" data-direction="Barat">BARAT</button>
-                        <div class="text-center">
-                            <label for="bet-amount" class="block text-sm mb-1">Jumlah Taruhan:</label>
-                            <input type="number" id="bet-amount" class="w-full bg-gray-900 text-center p-2 rounded" value="10">
-                        </div>
-                        <button class="direction-btn btn-primary p-4 font-bold" data-direction="Timur">TIMUR</button>
-                        <div></div>
-                        <button class="direction-btn btn-primary p-4 font-bold" data-direction="Selatan">SELATAN</button>
-                        <div></div>
-                    </div>
-                </div>
-
-                <!-- Player & Dealer Area -->
-                <div>
-                    <div class="bg-[#16213e] p-6 rounded-xl shadow-2xl mb-6">
-                        <h3 class="text-xl font-bold mb-2">Status Pemain</h3>
-                        <p class="text-3xl font-bold text-yellow-300"><span id="chip-count">0</span> Chips</p>
-                        <p class="text-sm text-gray-400">Hasil dari kecerdasanmu (untuk saat ini).</p>
-                        <button id="back-to-quiz-btn" class="w-full mt-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-3 rounded-lg">Cari Chip Lagi</button>
-                    </div>
-                    <div class="bg-[#16213e] p-6 rounded-xl shadow-2xl">
-                        <h3 class="text-xl font-bold mb-2">Komentar Bandar</h3>
-                        <div id="dealer-comment-box" class="dealer-comment p-4 rounded min-h-[100px] italic text-gray-300">
-                            "Selamat datang, calon donatur. Silakan pilih arah kehancuran finansialmu."
-                        </div>
+                    <!-- Sell Chips -->
+                    <div class="bg-[#16213e] p-8 rounded-xl shadow-2xl">
+                        <h2 class="text-xl font-bold mb-2">Jual Chip</h2>
+                        <p class="text-sm text-gray-400 mb-4">Kurs (Menyedihkan): 100 Chips = 1 PI</p>
+                        <p class="text-lg mb-4">Chip Kamu: <span class="font-bold text-yellow-300" id="exchange-chip-balance">0</span></p>
+                        <input type="number" id="chips-to-exchange" class="w-full bg-gray-900 text-white p-3 rounded-md mb-4" placeholder="Jumlah Chip...">
+                        <button id="exchange-chips-btn" class="w-full btn btn-primary text-lg">Jual Chip</button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Bankruptcy Screen -->
-        <div id="bankruptcy-screen" class="hidden max-w-2xl mx-auto text-center bg-red-900 bg-opacity-50 p-8 rounded-xl shadow-2xl border-2 border-red-500">
-            <h1 class="text-4xl font-display text-red-400 mb-4">MODAL INTELEKTUAL BANGKRUT</h1>
-            <p class="text-gray-200 mb-6" id="bankruptcy-comment">Sang Bandar menatapmu dengan tatapan kasihan yang dibuat-buat. "Yah, setidaknya kamu sudah mencoba. Otak dan keberuntungan memang jarang akur."</p>
-            <h3 class="font-bold text-lg mt-8 mb-4">Paket Stimulus Kebangkrutan:</h3>
-            <div class="space-y-3 text-left">
-                <a href="https://en.wikipedia.org/wiki/Gambler%27s_fallacy" target="_blank" class="block p-3 bg-gray-700 hover:bg-gray-600 rounded">Baca tentang "Gambler's Fallacy" (biar makin ngerasa bodoh)</a>
-                <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" class="block p-3 bg-gray-700 hover:bg-gray-600 rounded">Video kompilasi orang gagal (untuk menemani penderitaanmu)</a>
-                <button id="restart-from-quiz-btn" class="w-full btn-primary p-3 rounded mt-4">Coba jadi pintar lagi dari awal...</button>
+            <!-- Skill Tree Screen -->
+            <div id="skill-tree-screen" class="hidden">
+                 <h1 class="text-3xl font-display text-yellow-300 mb-6 text-center">Pohon Skill Penipu Intelektual</h1>
+                 <div id="skill-tree-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+            </div>
+
+            <!-- Blackjack Screen -->
+            <div id="blackjack-screen" class="hidden">
+                <div class="blackjack-table mx-auto p-6 flex flex-col justify-between">
+                    <div class="text-center">
+                        <h2 class="font-bold text-2xl">BANDAR (<span id="dealer-score">0</span>)</h2>
+                        <div id="dealer-cards" class="flex justify-center my-2 min-h-[125px]"></div>
+                    </div>
+                    <div class="text-center">
+                        <div id="player-cards" class="flex justify-center my-2 min-h-[125px]"></div>
+                        <h2 class="font-bold text-2xl"><span id="blackjack-player-name"></span> (<span id="player-score">0</span>)</h2>
+                    </div>
+                </div>
+                <div id="game-controls" class="mt-4 max-w-4xl mx-auto flex justify-center items-center gap-4">
+                    <div id="betting-controls" class="flex items-center gap-2">
+                        <input type="number" id="bet-amount" class="w-32 bg-gray-900 text-center p-3 rounded" value="10" step="10">
+                        <button id="deal-btn" class="btn btn-primary">DEAL</button>
+                    </div>
+                    <div id="action-controls" class="hidden">
+                        <button id="hit-btn" class="btn btn-secondary">HIT</button>
+                        <button id="stand-btn" class="btn btn-secondary">STAND</button>
+                        <button id="double-btn" class="btn btn-secondary">DOUBLE</button>
+                    </div>
+                </div>
+                <div id="skill-controls" class="mt-2 max-w-4xl mx-auto flex justify-center items-center gap-2"></div>
+                <div id="game-result" class="mt-4 text-center text-3xl font-bold h-10"></div>
+                <div id="dealer-comment-box" class="mt-4 max-w-2xl mx-auto p-4 rounded bg-[#0f3460] border-l-4 border-e94560 italic min-h-[80px]"></div>
+            </div>
+            
+            <!-- Loading Screen -->
+            <div id="loading-screen" class="hidden text-center p-10">
+                 <div class="flex justify-center items-center mb-4"><div class="spinner"></div></div>
+                 <p id="loading-text" class="text-xl font-semibold text-gray-300"></p>
             </div>
         </div>
     </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        let apiKey = localStorage.getItem('satireCasinoApiKey');
-        let gameState = {
-            chips: 0,
-            currentQuiz: [],
-            currentQuestionIndex: 0,
+        // --- GAME DATABASES ---
+        const SKILL_DATABASE = {
+            'peek': { id: 'peek', name: 'Mata Elang', maxLevel: 1, cost: 50, description: 'Sekali per ronde, intip kartu tertutup Bandar.' },
+            'card_count': { id: 'card_count', name: 'Hitung Kartu', maxLevel: 3, cost: 100, description: 'Lv1: Tahu rasio kasar kartu tinggi/rendah. Lv2: Tahu jumlah pasti. Lv3: Tahu 1 kartu yang akan keluar.' },
+            'poker_face': { id: 'poker_face', name: 'Wajah Poker', maxLevel: 3, cost: 75, description: 'Memaksa Bandar STAND jika nilainya 15-16. Peluang sukses berdasarkan level.' }
         };
+        const SUITS = ['♥', '♦', '♣', '♠'];
+        const VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
-        const screens = {
-            apiKey: document.getElementById('api-key-screen'),
-            quizSelection: document.getElementById('quiz-selection-screen'),
-            quiz: document.getElementById('quiz-screen'),
-            loading: document.getElementById('loading-screen'),
-            casino: document.getElementById('casino-screen'),
-            bankruptcy: document.getElementById('bankruptcy-screen'),
-        };
+        // --- GAME STATE ---
+        let apiKey = null;
+        let playerProfile = {};
+        let blackjackState = {};
+        let audioStarted = false;
+        let synth;
 
-        const showScreen = (screenName) => {
-            Object.values(screens).forEach(screen => screen.classList.add('hidden'));
-            screens[screenName].classList.remove('hidden');
-        };
+        // --- DOM Elements ---
+        const dom = {}; 
 
-        const callAI = async (prompt, loadingText) => {
-            document.getElementById('loading-text').textContent = loadingText;
-            showScreen('loading');
+        // =================================================================================
+        // --- INITIALIZATION & CORE SETUP ---
+        // =================================================================================
+        function init() {
+            // BUG FIX: Corrected the array to use kebab-case IDs from HTML
+            [
+                'header', 'screen-container', 'header-player-name', 'header-chips', 'header-pi', 'header-nav', 
+                'api-key-screen', 'player-name-screen', 'lobby-screen', 'quiz-selection-screen', 'quiz-screen', 
+                'exchange-screen', 'skill-tree-screen', 'blackjack-screen', 'loading-screen', 
+                'api-key-input', 'save-api-key-btn', 'skip-api-key-btn', 'player-name-input', 'save-player-name-btn',
+                'topic-input', 'start-quiz-btn', 'exchange-pi-balance', 'exchange-chip-balance', 'pi-to-exchange', 'chips-to-exchange', 'exchange-pi-btn', 'exchange-chips-btn',
+                'skill-tree-container', 'dealer-score', 'dealer-cards', 'player-cards', 'blackjack-player-name', 'player-score',
+                'game-controls', 'betting-controls', 'bet-amount', 'deal-btn', 'action-controls', 'hit-btn', 'stand-btn', 'double-btn',
+                'skill-controls', 'game-result', 'dealer-comment-box', 'loading-text'
+            ].forEach(id => {
+                const camelCaseId = id.replace(/-(\w)/g, (m, p1) => p1.toUpperCase());
+                dom[camelCaseId] = document.getElementById(id);
+            });
+
+            loadPlayerProfile();
+            setupSounds();
+            addEventListeners();
+            updateAllUI();
+
+            // Initial screen logic
+            if (!playerProfile.name) {
+                showScreen('playerNameScreen');
+            } else if (localStorage.getItem('casinoApiKey') === null && localStorage.getItem('casinoApiSkipped') === null) {
+                showScreen('apiKeyScreen');
+            } else {
+                showScreen('lobbyScreen');
+            }
+        }
+
+        function loadPlayerProfile() {
+            const savedProfile = localStorage.getItem('casinoProfile_v3');
+            apiKey = localStorage.getItem('casinoApiKey');
+            if (savedProfile) {
+                playerProfile = JSON.parse(savedProfile);
+            } else {
+                playerProfile = {
+                    name: null, chips: 100, pi: 0,
+                    skills: {}, // { skillId: level }
+                    stats: { wins: 0, losses: 0, blackjacks: 0, pi_earned: 0 }
+                };
+            }
+        }
+
+        function savePlayerProfile() {
+            localStorage.setItem('casinoProfile_v3', JSON.stringify(playerProfile));
+        }
+
+        function setupSounds() {
+            if (window.Tone) {
+                synth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "sine" }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioStarted || !synth) return;
+            const now = Tone.now();
+            const sounds = {
+                'win': ["C5", "E5", "G5"], 'jackpot': ["C5", "G5", "C6"], 'lose': "C3",
+                'deal': "G4", 'hit': "E4", 'stand': "C4", 'shuffle': "A2", 'skill': "A5", 'exchange': "F5"
+            };
+            if (sounds[type]) synth.triggerAttackRelease(sounds[type], "8n", now);
+        }
+        
+        // =================================================================================
+        // --- UI & NAVIGATION ---
+        // =================================================================================
+        function showScreen(screenId) {
+            const camelCaseId = screenId.replace(/-(\w)/g, (m, p1) => p1.toUpperCase());
+            
+            Object.values(dom).filter(el => el && el.id && el.id.endsWith('-screen')).forEach(el => el.classList.add('hidden'));
+            
+            if (dom[camelCaseId]) {
+                dom[camelCaseId].classList.remove('hidden');
+            } else {
+                console.error(`Screen with id "${screenId}" (camelCase: "${camelCaseId}") not found in DOM object.`);
+                return;
+            }
+
+            const showHeader = camelCaseId !== 'apiKeyScreen' && camelCaseId !== 'playerNameScreen';
+            dom.header.classList.toggle('hidden', !showHeader);
+            
+            if (showHeader) {
+                createNavButtons(camelCaseId);
+            }
+            
+            if (camelCaseId === 'lobbyScreen') updateAllUI();
+            if (camelCaseId === 'exchangeScreen') setupExchangeScreen();
+            if (camelCaseId === 'skillTreeScreen') setupSkillTreeScreen();
+            if (camelCaseId === 'blackjackScreen') setupBlackjackScreen();
+        }
+
+        function updateHeader() {
+            dom.headerPlayerName.textContent = playerProfile.name;
+            dom.headerChips.textContent = playerProfile.chips;
+            dom.headerPi.textContent = playerProfile.pi;
+        }
+
+        function updateAllUI() {
+            updateHeader();
+        }
+
+        function createNavButtons(currentScreen) {
+            dom.headerNav.innerHTML = '';
+            const buttons = [
+                { id: 'lobby', text: 'Lobi' },
+                { id: 'blackjack', text: 'Meja Judi' }
+            ];
+            buttons.forEach(b => {
+                const btn = document.createElement('button');
+                btn.textContent = b.text;
+                btn.dataset.target = `${b.id}-screen`;
+                btn.className = `btn text-sm ${currentScreen === `${b.id}Screen` ? 'btn-primary' : 'btn-secondary'}`;
+                dom.headerNav.appendChild(btn);
+            });
+        }
+
+        // =================================================================================
+        // --- EVENT LISTENERS ---
+        // =================================================================================
+        function addEventListeners() {
+            const startAudio = async () => {
+                if (!audioStarted && window.Tone) {
+                    await Tone.start();
+                    audioStarted = true;
+                }
+            };
+
+            dom.saveApiKeyBtn.addEventListener('click', () => {
+                startAudio();
+                const key = dom.apiKeyInput.value.trim();
+                if (key) {
+                    apiKey = key;
+                    localStorage.setItem('casinoApiKey', key);
+                    localStorage.removeItem('casinoApiSkipped');
+                    showScreen('lobby-screen');
+                } else { alert("API Key tidak boleh kosong."); }
+            });
+
+            dom.skipApiKeyBtn.addEventListener('click', () => {
+                startAudio();
+                apiKey = null;
+                localStorage.removeItem('casinoApiKey');
+                localStorage.setItem('casinoApiSkipped', 'true');
+                showScreen('lobby-screen');
+            });
+
+            dom.savePlayerNameBtn.addEventListener('click', () => {
+                startAudio();
+                const name = dom.playerNameInput.value.trim();
+                if (name) {
+                    playerProfile.name = name;
+                    savePlayerProfile();
+                    updateAllUI();
+                    showScreen(localStorage.getItem('casinoApiKey') === null && localStorage.getItem('casinoApiSkipped') === null ? 'api-key-screen' : 'lobby-screen');
+                }
+            });
+            
+            dom.headerNav.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') showScreen(e.target.dataset.target);
+            });
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => showScreen(e.currentTarget.dataset.target));
+            });
+
+            dom.startQuizBtn.addEventListener('click', startQuiz);
+            dom.exchangePiBtn.addEventListener('click', handlePiExchange);
+            dom.exchangeChipsBtn.addEventListener('click', handleChipExchange);
+            dom.dealBtn.addEventListener('click', startBlackjackRound);
+            dom.hitBtn.addEventListener('click', playerHit);
+            dom.standBtn.addEventListener('click', () => playerStand());
+            dom.doubleBtn.addEventListener('click', playerDoubleDown);
+            dom.skillTreeContainer.addEventListener('click', (e) => {
+                const button = e.target.closest('.unlock-skill-btn');
+                if(button) unlockSkill(button.dataset.skillId);
+            });
+        }
+
+        // =================================================================================
+        // --- QUIZ LOGIC ---
+        // =================================================================================
+        async function startQuiz() {
+            const topic = dom.topicInput.value.trim();
+            if (!topic) { alert("Tolong masukkan topik kuis."); return; }
+            if (!apiKey) { alert("Fitur kuis AI membutuhkan API Key."); return; }
+
+            dom.loadingText.textContent = "AI sedang membuat soal-soal sulit untukmu...";
+            showScreen('loadingScreen');
+
+            const prompt = `Generate 5 multiple-choice quiz questions about "${topic}". Respond with ONLY a valid JSON object: { "topic": "string", "questions": [ { "q": "string", "o": ["string", "string", "string", "string"], "a": "string" } ] }. The 'a' must be one of the 'o'.`;
+            
+            try {
+                const result = await callAI(prompt);
+                if (!result || !result.questions || result.questions.length === 0) throw new Error("Format respons AI tidak valid.");
+                
+                blackjackState.quiz = result.questions;
+                blackjackState.quizIndex = 0;
+                blackjackState.quizCorrect = 0;
+                dom.quizScreen.innerHTML = `<h2 class="text-2xl font-bold text-center mb-6">Kuis: ${result.topic}</h2>`;
+                displayQuestion();
+                showScreen('quizScreen');
+            } catch (e) {
+                alert(`Gagal membuat kuis: ${e.message}. Coba topik lain.`);
+                showScreen('quizSelectionScreen');
+            }
+        }
+        
+        function displayQuestion() {
+            if (blackjackState.quizIndex >= blackjackState.quiz.length) {
+                const piEarned = blackjackState.quizCorrect * 5;
+                playerProfile.pi += piEarned;
+                playerProfile.stats.pi_earned += piEarned;
+                savePlayerProfile();
+                updateAllUI();
+                dom.quizScreen.innerHTML = `<div class="text-center"><p class="text-lg">Kuis selesai! Kamu benar ${blackjackState.quizCorrect} dari ${blackjackState.quiz.length} soal.</p><p class="text-2xl font-bold text-blue-300 my-4">+${piEarned} PI</p><button id="back-to-lobby-btn" class="btn btn-primary">Kembali ke Lobi</button></div>`;
+                document.getElementById('back-to-lobby-btn').onclick = () => showScreen('lobby-screen');
+                return;
+            }
+            const q = blackjackState.quiz[blackjackState.quizIndex];
+            const questionContainer = document.createElement('div');
+            questionContainer.innerHTML = `<p class="text-lg mb-4">${blackjackState.quizIndex + 1}. ${q.q}</p>`;
+            const optionsGrid = document.createElement('div');
+            optionsGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-3';
+            q.o.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'p-3 btn btn-secondary text-left';
+                button.onclick = () => checkAnswer(option, q.a, button, optionsGrid);
+                optionsGrid.appendChild(button);
+            });
+            questionContainer.appendChild(optionsGrid);
+            dom.quizScreen.innerHTML = '';
+            dom.quizScreen.appendChild(questionContainer);
+        }
+
+        function checkAnswer(selected, correct, btnEl, gridEl) {
+            Array.from(gridEl.children).forEach(btn => btn.disabled = true);
+            if (selected === correct) {
+                blackjackState.quizCorrect++;
+                btnEl.classList.replace('btn-secondary', 'bg-green-500');
+                playSound('win');
+            } else {
+                btnEl.classList.replace('btn-secondary', 'bg-red-500');
+                playSound('lose');
+                const correctBtn = Array.from(gridEl.children).find(btn => btn.textContent === correct);
+                if (correctBtn) correctBtn.classList.replace('btn-secondary', 'bg-green-500');
+            }
+            blackjackState.quizIndex++;
+            setTimeout(displayQuestion, 2000);
+        }
+
+        // =================================================================================
+        // --- EXCHANGE LOGIC ---
+        // =================================================================================
+        function setupExchangeScreen() {
+            dom.exchangePiBalance.textContent = playerProfile.pi;
+            dom.exchangeChipBalance.textContent = playerProfile.chips;
+            dom.piToExchange.value = '';
+            dom.chipsToExchange.value = '';
+        }
+        function handlePiExchange() {
+            const amount = parseInt(dom.piToExchange.value);
+            if (isNaN(amount) || amount <= 0 || amount > playerProfile.pi) { alert("Jumlah PI tidak valid."); return; }
+            playerProfile.pi -= amount;
+            playerProfile.chips += amount * 10;
+            playSound('exchange');
+            finalizeExchange();
+        }
+        function handleChipExchange() {
+            const amount = parseInt(dom.chipsToExchange.value);
+            if (isNaN(amount) || amount <= 0 || amount > playerProfile.chips) { alert("Jumlah Chip tidak valid."); return; }
+            if (amount < 100) { alert("Minimal penukaran adalah 100 Chips."); return; }
+            const piGained = Math.floor(amount / 100);
+            playerProfile.chips -= piGained * 100;
+            playerProfile.pi += piGained;
+            playSound('exchange');
+            finalizeExchange();
+        }
+        function finalizeExchange() {
+            updateAllUI();
+            savePlayerProfile();
+            setupExchangeScreen();
+            alert(`Transaksi berhasil!`);
+        }
+        
+        // =================================================================================
+        // --- SKILL TREE LOGIC ---
+        // =================================================================================
+        function setupSkillTreeScreen() {
+            dom.skillTreeContainer.innerHTML = '';
+            for(const skillId in SKILL_DATABASE) {
+                const skill = SKILL_DATABASE[skillId];
+                const currentLevel = playerProfile.skills[skillId] || 0;
+                const cost = skill.cost * (currentLevel + 1);
+                const isMaxed = currentLevel >= skill.maxLevel;
+
+                const node = document.createElement('div');
+                node.className = `skill-node p-4 rounded-lg ${isMaxed ? 'maxed' : (currentLevel > 0 ? 'unlocked' : '')}`;
+                node.innerHTML = `
+                    <h3 class="text-xl font-bold">${skill.name}</h3>
+                    <p class="text-sm text-gray-300 h-16">${skill.description}</p>
+                    <p class="mt-2">Level: ${currentLevel} / ${skill.maxLevel}</p>
+                    <p class="mt-1">Biaya Upgrade: ${isMaxed ? 'MAX' : `${cost} PI`}</p>
+                    <button class="unlock-skill-btn mt-3 btn btn-primary w-full" data-skill-id="${skillId}" ${isMaxed || playerProfile.pi < cost ? 'disabled' : ''}>
+                        ${isMaxed ? 'Level Maksimal' : (currentLevel > 0 ? 'Upgrade' : 'Buka Skill')}
+                    </button>
+                `;
+                dom.skillTreeContainer.appendChild(node);
+            }
+        }
+        function unlockSkill(skillId) {
+            const skill = SKILL_DATABASE[skillId];
+            const currentLevel = playerProfile.skills[skillId] || 0;
+            const cost = skill.cost * (currentLevel + 1);
+
+            if (currentLevel < skill.maxLevel && playerProfile.pi >= cost) {
+                playerProfile.pi -= cost;
+                playerProfile.skills[skillId] = currentLevel + 1;
+                playSound('skill');
+                savePlayerProfile();
+                updateAllUI();
+                setupSkillTreeScreen();
+            }
+        }
+
+        // =================================================================================
+        // --- BLACKJACK LOGIC ---
+        // =================================================================================
+        function setupBlackjackScreen() {
+            dom.blackjackPlayerName.textContent = playerProfile.name;
+            resetBlackjackTable();
+        }
+
+        function resetBlackjackTable() {
+            dom.dealerCards.innerHTML = '';
+            dom.playerCards.innerHTML = '';
+            dom.dealerScore.textContent = '0';
+            dom.playerScore.textContent = '0';
+            dom.gameResult.textContent = '';
+            dom.dealerCommentBox.textContent = '...';
+            dom.bettingControls.classList.remove('hidden');
+            dom.actionControls.classList.add('hidden');
+            dom.skillControls.classList.add('hidden');
+        }
+
+        function createDeck() {
+            blackjackState.deck = [];
+            for (let i = 0; i < 6; i++) {
+                for (const suit of SUITS) {
+                    for (const value of VALUES) {
+                        blackjackState.deck.push({ value, suit });
+                    }
+                }
+            }
+        }
+
+        function shuffleDeck() {
+            for (let i = blackjackState.deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [blackjackState.deck[i], blackjackState.deck[j]] = [blackjackState.deck[j], blackjackState.deck[i]];
+            }
+        }
+        
+        function getCardValue(card) {
+            if (['J', 'Q', 'K'].includes(card.value)) return 10;
+            if (card.value === 'A') return 11;
+            return parseInt(card.value);
+        }
+
+        function calculateScore(hand) {
+            let score = hand.reduce((sum, card) => sum + getCardValue(card), 0);
+            let aceCount = hand.filter(card => card.value === 'A').length;
+            while (score > 21 && aceCount > 0) {
+                score -= 10;
+                aceCount--;
+            }
+            return score;
+        }
+
+        function renderCard(card, targetElement, isHidden = false) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'playing-card';
+            if (isHidden) {
+                cardDiv.classList.add('hidden-card');
+            } else {
+                const isRed = ['♥', '♦'].includes(card.suit);
+                if (isRed) cardDiv.classList.add('red');
+                cardDiv.innerHTML = `<span class="card-value">${card.value}</span><span class="card-suit">${card.suit}</span>`;
+            }
+            targetElement.appendChild(cardDiv);
+        }
+        
+        function startBlackjackRound() {
+            const bet = parseInt(dom.betAmount.value);
+            if (isNaN(bet) || bet <= 0 || bet > playerProfile.chips) { alert("Taruhan tidak valid!"); return; }
+
+            resetBlackjackTable();
+            playSound('shuffle');
+            
+            blackjackState = { deck: [], playerHand: [], dealerHand: [], bet: bet, gameOver: false, skillUsed: {} };
+            playerProfile.chips -= bet;
+            updateAllUI();
+            createDeck();
+            shuffleDeck();
+
+            setTimeout(() => { playSound('deal'); blackjackState.playerHand.push(blackjackState.deck.pop()); renderCard(blackjackState.playerHand[0], dom.playerCards); updateScores(); }, 500);
+            setTimeout(() => { playSound('deal'); blackjackState.dealerHand.push(blackjackState.deck.pop()); renderCard(blackjackState.dealerHand[0], dom.dealerCards); updateScores(); }, 1000);
+            setTimeout(() => { playSound('deal'); blackjackState.playerHand.push(blackjackState.deck.pop()); renderCard(blackjackState.playerHand[1], dom.playerCards); updateScores(); }, 1500);
+            setTimeout(() => { 
+                playSound('deal'); 
+                blackjackState.dealerHand.push(blackjackState.deck.pop()); 
+                renderCard(blackjackState.dealerHand[1], dom.dealerCards, true); 
+                updateScores();
+
+                dom.bettingControls.classList.add('hidden');
+                dom.actionControls.classList.remove('hidden');
+                dom.skillControls.classList.remove('hidden');
+                dom.doubleBtn.disabled = playerProfile.chips < blackjackState.bet;
+                
+                renderSkillButtons();
+
+                if (calculateScore(blackjackState.playerHand) === 21) {
+                    playerProfile.stats.blackjacks++;
+                    playerStand(true);
+                }
+            }, 2000);
+        }
+
+        function updateScores(revealDealer = false) {
+            dom.playerScore.textContent = calculateScore(blackjackState.playerHand);
+            if (revealDealer) {
+                dom.dealerScore.textContent = calculateScore(blackjackState.dealerHand);
+            } else {
+                dom.dealerScore.textContent = blackjackState.dealerHand.length > 0 ? getCardValue(blackjackState.dealerHand[0]) : 0;
+            }
+        }
+        
+        function playerHit() {
+            playSound('hit');
+            const newCard = blackjackState.deck.pop();
+            blackjackState.playerHand.push(newCard);
+            renderCard(newCard, dom.playerCards);
+            updateScores();
+            dom.doubleBtn.disabled = true;
+            if (calculateScore(blackjackState.playerHand) > 21) determineWinner();
+        }
+
+        function playerStand(isBlackjack = false) {
+            playSound('stand');
+            dom.actionControls.classList.add('hidden');
+            dom.skillControls.classList.add('hidden');
+            
+            const hiddenCardEl = dom.dealerCards.children[1];
+            if (hiddenCardEl) {
+                hiddenCardEl.classList.remove('hidden-card');
+                const hiddenCard = blackjackState.dealerHand[1];
+                const isRed = ['♥', '♦'].includes(hiddenCard.suit);
+                if (isRed) hiddenCardEl.classList.add('red');
+                hiddenCardEl.innerHTML = `<span class="card-value">${hiddenCard.value}</span><span class="card-suit">${hiddenCard.suit}</span>`;
+            }
+            updateScores(true);
+
+            if (isBlackjack) determineWinner();
+            else setTimeout(dealerTurn, 1000);
+        }
+
+        function playerDoubleDown() {
+            if (playerProfile.chips < blackjackState.bet) { alert("Chip tidak cukup untuk Double Down!"); return; }
+            playerProfile.chips -= blackjackState.bet;
+            blackjackState.bet *= 2;
+            updateAllUI();
+            playerHit();
+            if (calculateScore(blackjackState.playerHand) <= 21) playerStand();
+        }
+
+        function dealerTurn() {
+            if (calculateScore(blackjackState.dealerHand) < 17) {
+                playSound('hit');
+                const newCard = blackjackState.deck.pop();
+                blackjackState.dealerHand.push(newCard);
+                renderCard(newCard, dom.dealerCards);
+                updateScores(true);
+                setTimeout(dealerTurn, 1000);
+            } else {
+                determineWinner();
+            }
+        }
+
+        async function determineWinner() {
+            if (blackjackState.gameOver) return;
+            blackjackState.gameOver = true;
+            dom.actionControls.classList.add('hidden');
+            dom.skillControls.classList.add('hidden');
+            
+            let resultText = '';
+            let winnings = 0;
+            let outcomeEvent = 'lose';
+            const pScore = calculateScore(blackjackState.playerHand);
+            const dScore = calculateScore(blackjackState.dealerHand);
+
+            if (pScore > 21) {
+                resultText = "BUST! Kamu Kalah!";
+                playerProfile.stats.losses++;
+                outcomeEvent = 'bust';
+            } else if (dScore > 21 || pScore > dScore) {
+                if (pScore === 21 && blackjackState.playerHand.length === 2) {
+                    resultText = "BLACKJACK! Kamu Menang!";
+                    winnings = blackjackState.bet * 2.5;
+                    outcomeEvent = 'blackjack';
+                } else {
+                    resultText = "Kamu Menang!";
+                    winnings = blackjackState.bet * 2;
+                    outcomeEvent = 'win';
+                }
+                playerProfile.stats.wins++;
+            } else if (pScore < dScore) {
+                resultText = "Kamu Kalah!";
+                playerProfile.stats.losses++;
+                outcomeEvent = 'lose';
+            } else {
+                resultText = "PUSH! (Seri)";
+                winnings = blackjackState.bet;
+                outcomeEvent = 'push';
+            }
+
+            playerProfile.chips += winnings;
+            dom.gameResult.textContent = resultText;
+            playSound(outcomeEvent === 'win' || outcomeEvent === 'blackjack' ? 'jackpot' : 'lose');
+            
+            updateAllUI();
+            savePlayerProfile();
+            
+            getDealerComment(outcomeEvent); // Call without await for background execution
+            
+            setTimeout(() => dom.bettingControls.classList.remove('hidden'), 3000);
+        }
+        
+        function renderSkillButtons() {
+            dom.skillControls.innerHTML = '';
+            for(const skillId in playerProfile.skills) {
+                if(playerProfile.skills[skillId] > 0) {
+                    const skill = SKILL_DATABASE[skillId];
+                    const btn = document.createElement('button');
+                    btn.textContent = skill.name;
+                    btn.className = 'btn btn-skill';
+                    btn.disabled = blackjackState.skillUsed[skillId];
+                    btn.onclick = () => useSkill(skillId);
+                    dom.skillControls.appendChild(btn);
+                }
+            }
+        }
+
+        function useSkill(skillId) {
+            playSound('skill');
+            blackjackState.skillUsed[skillId] = true;
+            renderSkillButtons();
+
+            if(skillId === 'peek') {
+                const hiddenCard = blackjackState.dealerHand[1];
+                alert(`Bandar lengah! Kartu tertutupnya adalah ${hiddenCard.value} ${hiddenCard.suit}.`);
+            }
+        }
+
+        async function callAI(prompt) {
+            if (!apiKey) {
+                return { comment: "Bandar sedang malas bicara. Mungkin karena kamu tidak memberinya akses ke otaknya (API Key)." };
+            }
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
                     method: 'POST',
@@ -194,188 +761,19 @@
                 return JSON.parse(cleanedJsonString);
             } catch (error) {
                 console.error("AI Call Failed:", error);
-                alert("Koneksi ke AI gagal. Periksa API Key atau coba lagi.");
-                showScreen('apiKey'); // Fallback to API key screen
-                return null;
+                return { comment: "Bandar sedang sibuk menghitung chipmu yang akan jadi miliknya, jadi dia tidak bisa berkomentar." };
             }
-        };
+        }
 
-        const handleApiKey = () => {
-            const apiKeyInput = document.getElementById('api-key-input');
-            const saveApiKeyBtn = document.getElementById('save-api-key-btn');
-            saveApiKeyBtn.addEventListener('click', () => {
-                const key = apiKeyInput.value.trim();
-                if (key) {
-                    apiKey = key;
-                    localStorage.setItem('satireCasinoApiKey', key);
-                    showScreen('quizSelection');
-                } else { alert("API Key tidak boleh kosong."); }
-            });
-            if (apiKey) showScreen(gameState.chips > 0 ? 'casino' : 'quizSelection');
-            else showScreen('apiKey');
-        };
-
-        const startQuiz = async () => {
-            const topic = document.getElementById('topic-input').value.trim();
-            if (!topic) {
-                alert("Tolong masukkan topik kuis.");
-                return;
-            }
-            const prompt = `
-                Generate 5 multiple-choice quiz questions about "${topic}".
-                You MUST respond with ONLY a valid JSON object.
-                The structure must be: { "topic": "string", "questions": [ { "question": "string", "options": ["string", "string", "string", "string"], "answer": "string" } ] }.
-                The answer must be one of the options.
-            `;
-            const result = await callAI(prompt, "AI sedang membuat soal-soal sulit untukmu...");
-            if (result && result.questions) {
-                gameState.currentQuiz = result.questions;
-                gameState.currentQuestionIndex = 0;
-                document.getElementById('quiz-title').textContent = `Kuis: ${result.topic}`;
-                displayQuestion();
-                showScreen('quiz');
-            }
-        };
-
-        const displayQuestion = () => {
-            const container = document.getElementById('question-container');
-            const feedback = document.getElementById('quiz-feedback');
-            container.innerHTML = '';
-            feedback.innerHTML = '';
-            
-            if (gameState.currentQuestionIndex >= gameState.currentQuiz.length) {
-                container.innerHTML = `<p class="text-center text-lg">Kuis selesai! Kamu berhasil mengumpulkan ${gameState.chips} chip. Sekarang, pergilah ke kasino dan habiskan semuanya.</p>`;
-                const button = document.createElement('button');
-                button.textContent = 'Masuk Kasino';
-                button.className = 'w-full btn-primary text-white font-bold py-3 px-4 rounded-lg text-lg mt-4';
-                button.onclick = () => showScreen('casino');
-                container.appendChild(button);
-                return;
-            }
-
-            const q = gameState.currentQuiz[gameState.currentQuestionIndex];
-            container.innerHTML += `<p class="text-lg mb-4">${q.question}</p>`;
-            const optionsGrid = document.createElement('div');
-            optionsGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-3';
-            q.options.forEach(option => {
-                const button = document.createElement('button');
-                button.textContent = option;
-                button.className = 'p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-left';
-                button.onclick = () => checkAnswer(option, q.answer);
-                optionsGrid.appendChild(button);
-            });
-            container.appendChild(optionsGrid);
-        };
-
-        const checkAnswer = (selected, correct) => {
-            const feedback = document.getElementById('quiz-feedback');
-            if (selected === correct) {
-                gameState.chips += 10;
-                feedback.textContent = "+10 Chips! Jawabanmu benar. Jangan senang dulu.";
-                feedback.className = "mt-4 text-center font-bold text-green-400";
-            } else {
-                feedback.textContent = "Salah! Jawaban yang benar adalah: " + correct;
-                feedback.className = "mt-4 text-center font-bold text-red-400";
-            }
-            updateChipDisplay();
-            gameState.currentQuestionIndex++;
-            setTimeout(displayQuestion, 2000);
-        };
-
-        const updateChipDisplay = () => {
-            document.getElementById('chip-count').textContent = gameState.chips;
-        };
-
-        const handleGambling = async (direction) => {
-            const betAmount = parseInt(document.getElementById('bet-amount').value);
-            if (isNaN(betAmount) || betAmount <= 0) {
-                alert("Jumlah taruhan tidak valid.");
-                return;
-            }
-            if (betAmount > gameState.chips) {
-                alert("Chip-mu tidak cukup. Jawab kuis lagi sana!");
-                return;
-            }
-
-            document.querySelectorAll('.direction-btn').forEach(b => b.disabled = true);
-            
-            const directions = ["Utara", "Selatan", "Timur", "Barat"];
-            const result = directions[Math.floor(Math.random() * directions.length)];
-            
-            const cockroachImg = document.getElementById('cockroach-img');
-            let transform = '';
-            if (result === 'Utara') transform = 'translateY(-50px) rotate(0deg)';
-            if (result === 'Selatan') transform = 'translateY(50px) rotate(180deg)';
-            if (result === 'Barat') transform = 'translateX(-50px) rotate(-90deg)';
-            if (result === 'Timur') transform = 'translateX(50px) rotate(90deg)';
-            cockroachImg.style.transform = transform;
-
-            let outcome;
-            if (direction === result) {
-                gameState.chips += betAmount;
-                outcome = 'menang';
-            } else {
-                gameState.chips -= betAmount;
-                outcome = 'kalah';
-            }
-            
-            const prompt = `
-                You are a sarcastic, passive-aggressive, and condescending casino dealer AI.
-                The player just played a game called "Guess the Cockroach Direction".
-                - Player's bet: ${betAmount} chips.
-                - Player's choice: ${direction}.
-                - Actual outcome: ${result}.
-                - Result: The player ${outcome}.
-                - Player's current chip count: ${gameState.chips}.
-                
-                Your task is to provide a short, snarky, and insulting comment based on this result in Bahasa Indonesia.
-                You MUST respond with ONLY a valid JSON object with a single key: "comment".
-                Example: { "comment": "Tentu saja kamu kalah. Kecoak itu bahkan lebih pintar darimu." }
-            `;
-            
-            const dealerResponse = await callAI(prompt, "Bandar sedang memikirkan cara terbaik untuk menghinamu...");
-            if (dealerResponse && dealerResponse.comment) {
-                document.getElementById('dealer-comment-box').textContent = `"${dealerResponse.comment}"`;
-            }
-
-            setTimeout(() => {
-                cockroachImg.style.transform = 'translate(0,0) rotate(0deg)';
-                updateChipDisplay();
-                if (gameState.chips <= 0) {
-                    showBankruptcy();
-                }
-                document.querySelectorAll('.direction-btn').forEach(b => b.disabled = false);
-            }, 2000);
-        };
-
-        const showBankruptcy = async () => {
-            const prompt = `
-                You are a sarcastic casino dealer AI. The player has just lost all their chips and is now bankrupt.
-                Give them one last insulting comment for the bankruptcy screen in Bahasa Indonesia.
-                Respond with a JSON object: { "comment": "string" }
-            `;
-            const finalComment = await callAI(prompt, "Menyiapkan paket kebangkrutan...");
-            if (finalComment && finalComment.comment) {
-                document.getElementById('bankruptcy-comment').textContent = `Sang Bandar menatapmu dengan tatapan kasihan yang dibuat-buat. "${finalComment.comment}"`;
-            }
-            showScreen('bankruptcy');
-        };
+        async function getDealerComment(event) {
+            dom.dealerCommentBox.textContent = 'Bandar sedang berpikir...';
+            const prompt = `You are a sarcastic casino dealer AI. A blackjack round just ended. Player's hand score: ${calculateScore(blackjackState.playerHand)}, Dealer's hand score: ${calculateScore(blackjackState.dealerHand)}, Round outcome for player: ${event}, Player's total chips now: ${playerProfile.chips}. Provide a short, snarky comment in Bahasa Indonesia based on this. Respond with ONLY a valid JSON object: { "comment": "string" }.`;
+            const result = await callAI(prompt);
+            dom.dealerCommentBox.textContent = `"${result.comment}"`;
+        }
         
-        // --- Event Listeners ---
-        document.getElementById('start-quiz-btn').addEventListener('click', startQuiz);
-        document.querySelectorAll('.direction-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => handleGambling(e.target.dataset.direction));
-        });
-        document.getElementById('back-to-quiz-btn').addEventListener('click', () => showScreen('quizSelection'));
-        document.getElementById('restart-from-quiz-btn').addEventListener('click', () => {
-            gameState.chips = 0;
-            updateChipDisplay();
-            showScreen('quizSelection');
-        });
-
-        // --- Initialization ---
-        updateChipDisplay();
-        handleApiKey();
+        // --- STARTUP ---
+        init();
     });
     </script>
 </body>
